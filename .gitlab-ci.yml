@@ -23,6 +23,7 @@ cache:
 .nx-base:
   image: node:20-alpine
   before_script:
+    - apk add --no-cache git
     - npm ci
 
 install:
@@ -38,7 +39,6 @@ lint_and_test:
   extends: .nx-base
   stage: test
   script:
-    # Solo testea lo que cambió respecto a la rama principal
     - npx nx affected -t lint test --base=origin/main
   only:
     - merge_requests
