@@ -6,6 +6,7 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_BUILDKIT: 1
 
 stages:
   - install
@@ -44,19 +45,25 @@ lint_and_test:
     - merge_requests
     - main
 
-build_images:
+build_backend:
   stage: build
   script:
-    # Login al registry de GitLab
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # Build de backend
-    - docker build -t $CI_REGISTRY_IMAGE/backend:latest -f .devcontainer/php.Dockerfile .
+    - docker build 
+        --cache-from $CI_REGISTRY_IMAGE/backend:latest 
+        -t $CI_REGISTRY_IMAGE/backend:latest 
+        -f .devcontainer/php.Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/backend:latest
-    # Build de frontend
-    - docker build -t $CI_REGISTRY_IMAGE/frontend:latest -f .devcontainer/node.Dockerfile .
+  only: [main]
+
+  build_frontend:
+  stage: build
+  script:
+    - docker build 
+        --cache-from $CI_REGISTRY_IMAGE/frontend:latest 
+        -t $CI_REGISTRY_IMAGE/frontend:latest 
+        -f .devcontainer/node.Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/frontend:latest
-  only:
-    - main
+  only: [main]
 
 deploy_staging:
   stage: deploy

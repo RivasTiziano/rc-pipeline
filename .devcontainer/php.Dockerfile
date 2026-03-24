@@ -1,18 +1,14 @@
-FROM php:8.2-cli
+FROM php:8.2-alpine AS base
+RUN apk add --no-cache \
+    git unzip libzip-dev sqlite-dev zlib-dev icu-dev g++ \
+    && docker-php-ext-install intl zip
 
-# Instalar dependencias de sistema (git, unzip, libzip para la extensión zip)
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    libsqlite3-dev \
-    zlib1g-dev \
-    libicu-dev \
-    g++ \
-    && docker-php-ext-install intl zip \
-    && docker-php-ext-enable intl zip
-
-# Instalar Composer globalmente
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /workspaces/my-project/apps/backend
+WORKDIR /app
+# Cachear dependencias de Composer
+COPY apps/backend/codeigniter4/composer.* ./
+RUN composer install --no-scripts --no-autoloader
+
+COPY apps/backend/codeigniter4/ .
+RUN composer dump-autoloader --optimize
