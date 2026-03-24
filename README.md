@@ -64,3 +64,4 @@ The project utilizes a **sidecar network architecture** to simplify service disc
 * **Port 4200 not loading:** Ensure the backend container is running; it owns the port mapping for the workspace.  
 * **SQLite Locked:** Ensure the writable folder in the backend has 777 permissions if using SQLite.  
 * **Vite HMR:** If Hot Module Replacement fails, ensure server.host is set to 0.0.0.0 in vite.config.ts.
+
