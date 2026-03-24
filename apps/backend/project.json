@@ -1,0 +1,15 @@
+{
+  "name": "backend",
+  "": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/backend",
+  "targets": {
+  "serve": {
+    "executor": "nx:run-commands",
+    "options": {
+      "command": "php spark serve --host 0.0.0.0 --port 8080",
+      "cwd": "apps/backend/codeigniter4"
+    }
+  }
+}
+}

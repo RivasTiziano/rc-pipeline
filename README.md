@@ -1,96 +1,66 @@
-# RcPipeline
+# **RC Pipeline Monorepo**
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Professional-grade full-stack monorepo managed by **Nx**, fully containerized with **Docker**, and pre-configured for **VS Code Dev Containers**.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## **1\. Architecture & Networking**
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+The project utilizes a **sidecar network architecture** to simplify service discovery and cross-origin communication.
 
-## Run tasks
+* **Network Host (backend):** The PHP container manages the network namespace. It exposes all public ports (8080, 4200, 8081).  
+* **Workspace Agent (workspace):** Runs Node.js/Nx. It attaches to the backend's network, allowing localhost communication between React and CodeIgniter.  
+* **Infrastructure:** Uses Alpine-based images for minimal footprint and fast cold starts.
 
-To run tasks with Nx use:
+## **2\. Tech Stack**
 
-```sh
-npx nx <target> <project-name>
-```
+| Component | Technology | Internal Path | Port |
+| :---- | :---- | :---- | :---- |
+| **Frontend** | React 19 \+ Vite | apps/frontend | 4200 |
+| **Backend API** | CodeIgniter 4.x | apps/backend/codeigniter4 | 8080 |
+| **DB Admin** | Adminer | N/A | 8081 |
+| **Monorepo Tool** | Nx | Root | N/A |
 
-For example:
+## **3\. Project Structure**
 
-```sh
-npx nx build myproject
-```
+.  
+├── apps/  
+│   ├── frontend/             \# React 19 \+ Tailwind/CSS  
+│   │   ├── src/              \# Application logic  
+│   │   └── vite.config.ts    \# Vite & Proxy configuration  
+│   └── backend/  
+│       └── codeigniter4/     \# PHP Framework Root  
+│           ├── app/          \# PHP Logic (Controllers, Models)  
+│           ├── public/       \# API Entry point  
+│           └── writable/     \# Logs and Cache  
+├── .devcontainer/            \# Infrastructure as Code (Docker/JSON)  
+├── nx.json                   \# Nx workspace dependency graph  
+└── package.json              \# Global scripts and dependencies
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## **4\. Development Workflow**
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### **Environment Setup**
 
-## Add new projects
+1. Ensure **Docker Desktop** and **WSL2** (if on Windows) are running.  
+2. Open the folder in VS Code.  
+3. Click **"Reopen in Container"** when prompted.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+### **Execution Commands**
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
+| Task | Command | Context |
+| :---- | :---- | :---- |
+| **Start Frontend** | npx nx serve frontend | Workspace |
+| **Build All** | npx nx run-many \-t build | Workspace |
+| **CI4 Spark CLI** | php spark \[command\] | Backend |
+| **Database Migrate** | php spark migrate | Backend |
+| **Dependency Graph** | npx nx graph | Workspace |
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+## **5\. Development Guidelines**
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+* **API Calls:** Use relative paths (e.g., /api/endpoint). The Vite proxy is configured to redirect these to the backend container automatically.  
+* **Permissions:** If you encounter EACCES during file creation, run sudo chown \-R $(whoami) . in the terminal.  
+* **Code Style:** Nx enforces linting rules. Run npx nx lint frontend before pushing changes.
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
+## **6\. Troubleshooting**
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+* **Port 4200 not loading:** Ensure the backend container is running; it owns the port mapping for the workspace.  
+* **SQLite Locked:** Ensure the writable folder in the backend has 777 permissions if using SQLite.  
+* **Vite HMR:** If Hot Module Replacement fails, ensure server.host is set to 0.0.0.0 in vite.config.ts.

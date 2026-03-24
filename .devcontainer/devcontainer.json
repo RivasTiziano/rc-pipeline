@@ -1,0 +1,18 @@
+{
+  "name": "Nx Monorepo Context",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/rc-pipeline",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "nrwl.angular-console",
+        "esbenp.prettier-vscode",
+        "bmewburn.vscode-intelephense",
+        "ms-vscode.sqlite"
+      ]
+    }
+  },
+  "remoteUser": "node",
+  "postCreateCommand": "npm install && npx nx serve frontend --host 0.0.0.0"
+}
