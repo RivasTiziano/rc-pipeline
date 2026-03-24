@@ -1,0 +1,69 @@
+image: docker:24.0.5
+
+services:
+  - docker:24.0.5-dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+stages:
+  - install
+  - test
+  - build
+  - deploy
+
+# Cache de node_modules para acelerar los jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .nx/cache
+
+.nx-base:
+  image: node:20-alpine
+  before_script:
+    - npm ci
+
+install:
+  extends: .nx-base
+  stage: install
+  script:
+    - npm install
+  only:
+    - merge_requests
+    - main
+
+lint_and_test:
+  extends: .nx-base
+  stage: test
+  script:
+    # Solo testea lo que cambió respecto a la rama principal
+    - npx nx affected -t lint test --base=origin/main
+  only:
+    - merge_requests
+    - main
+
+build_images:
+  stage: build
+  script:
+    # Login al registry de GitLab
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # Build de backend
+    - docker build -t $CI_REGISTRY_IMAGE/backend:latest -f .devcontainer/php.Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/backend:latest
+    # Build de frontend
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:latest -f .devcontainer/node.Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/frontend:latest
+  only:
+    - main
+
+deploy_staging:
+  stage: deploy
+  script:
+    - echo "Desplegando a entorno de staging..."
+    # Aquí iría el comando de SSH o el trigger para Kubernetes/Portainer
+  environment:
+    name: staging
+  only:
+    - main
