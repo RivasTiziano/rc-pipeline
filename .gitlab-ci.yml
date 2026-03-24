@@ -55,7 +55,7 @@ build_backend:
     - docker push $CI_REGISTRY_IMAGE/backend:latest
   only: [main]
 
-  build_frontend:
+build_frontend:
   stage: build
   script:
     - docker build 
